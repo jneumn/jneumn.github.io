@@ -9,6 +9,7 @@ import remarkMath from 'remark-math';
 import remarkRehype from 'remark-rehype';
 import rehypeMathjax from 'rehype-mathjax/svg';
 import rehypeStringify from 'rehype-stringify';
+import { headingNavigation } from './heading-navigation.mjs';
 
 function localUrls() {
   return function transform(node) {
@@ -22,7 +23,7 @@ function localUrls() {
 }
 
 const processor = unified().use(remarkParse).use(remarkGfm).use(remarkMath)
-  .use(remarkRehype).use(localUrls).use(rehypeMathjax).use(rehypeStringify);
+  .use(remarkRehype).use(headingNavigation).use(localUrls).use(rehypeMathjax).use(rehypeStringify);
 
 export async function readPosts(directory) {
   const files = (await readdir(directory)).filter(name => name.endsWith('.md'));
@@ -37,8 +38,9 @@ export async function readPosts(directory) {
     if (data.tags !== undefined && (!Array.isArray(data.tags) || data.tags.some(tag => typeof tag !== 'string' || !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(tag)))) fail('tags must be a list of lowercase, hyphen-separated names');
     if (data.description !== undefined && typeof data.description !== 'string') fail('description must be text');
     if (data.draft !== undefined && typeof data.draft !== 'boolean') fail('draft must be true or false');
+    if (data.toc !== undefined && typeof data.toc !== 'boolean') fail('toc must be true or false');
     if (data.draft) return null;
-    const rendered = await processor.process(content);
+    const rendered = await processor.process({ value: content, data: { toc: data.toc === true } });
     if (rendered.messages.length) fail(rendered.messages.map(message => message.message).join('; '));
     return { slug, title: data.title.trim(), date, tags: [...new Set(data.tags ?? [])], description: data.description ?? '', html: String(rendered) };
   }));

@@ -66,3 +66,39 @@ test('Markdown links and images respect the GitHub Pages repository path', async
     else process.env.NEXT_PUBLIC_BASE_PATH = previous;
   }
 });
+
+test('opt-in contents links target unique headings and preserve nested sections', async t => {
+  const directory = await fixture(t);
+  await writeFile(path.join(directory, 'contents.md'), header.replace('title: Example', 'title: Example\ntoc: true') +
+    '## Introduction\n\n### A *detail*\n\n## Introduction\n\n## Introduction-1');
+  const [post] = await readPosts(directory);
+  assert.match(post.html, /<nav class="post-toc" aria-label="Table of contents">/);
+  assert.match(post.html, /href="#introduction">Introduction<\/a><ol><li><a href="#a-detail">A detail<\/a>/);
+  for (const id of ['introduction', 'a-detail', 'introduction-1', 'introduction-1-1']) {
+    assert.match(post.html, new RegExp(`href="#${id}"`));
+    assert.match(post.html, new RegExp(`<h[23] id="${id}">`));
+  }
+  await writeFile(path.join(directory, 'contents.md'), header + '## Introduction');
+  assert.doesNotMatch((await readPosts(directory))[0].html, /post-toc/);
+});
+
+test('FFT post preserves Python code and all contents targets under a Pages base path', async () => {
+  const previous = process.env.NEXT_PUBLIC_BASE_PATH;
+  try {
+    process.env.NEXT_PUBLIC_BASE_PATH = '/my-blog';
+    const post = (await readPosts(path.resolve('content/posts'))).find(post => post.slug === 'fast-fourier-transform');
+    assert.ok(post);
+    assert.match(post.html, /<pre><code class="language-python">import cmath\nimport math/);
+    assert.match(post.html, /\n    for _ in range\(n\):\n        result = \(result &#x3C;&#x3C; 1\)/);
+    assert.match(post.html, /\n    return c\n<\/code><\/pre>/);
+    const nav = post.html.match(/<nav class="post-toc"[\s\S]*?<\/nav>/)?.[0];
+    assert.ok(nav);
+    const links = [...nav.matchAll(/href="#([^"]+)"/g)];
+    assert.equal(links.length, 6);
+    for (const [, id] of links) assert.match(post.html, new RegExp(`<h[23] id="${id}">`));
+    assert.doesNotMatch(post.html, /data-mjx-error/);
+  } finally {
+    if (previous === undefined) delete process.env.NEXT_PUBLIC_BASE_PATH;
+    else process.env.NEXT_PUBLIC_BASE_PATH = previous;
+  }
+});
