@@ -11,7 +11,7 @@ export default function ProjectsPage() {
     <main>
       <h1>Projects</h1>
       <section aria-labelledby="algebra-notes">
-        <h2 id="algebra-notes">Algebra I lecture notes (2025)</h2>
+        <h2 id="algebra-notes">Algebra I lecture notes (2026)</h2>
         <p>German notes based on Harald Grobner’s Algebra I lectures in the winter semester 2025/26, with additional explanations and supplementary material. Topics include rings, polynomials, field extensions, Galois theory, and groups.</p>
         <p><a href={siteUrl("/downloads/algebra-i-notes.pdf")}>Download PDF</a> · <a href={siteUrl("/downloads/algebra-i-notes.tm")} download>Download TeXmacs source</a></p>
       </section>

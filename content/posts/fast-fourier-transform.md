@@ -2,7 +2,7 @@
 title: A self-contained introduction to the Fast Fourier Transform
 date: "2026-09-05"
 tags: [numerics, programming]
-description: "A mathematical introduction to the FFT including a simple implementation Python"
+description: "A rigorous mathematical introduction to the FFT"
 toc: true
 ---
 
